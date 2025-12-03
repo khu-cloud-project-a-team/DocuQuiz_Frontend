@@ -13,7 +13,7 @@ export default function UploadPage() {
   // 드롭존 설정
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const pdfFiles = acceptedFiles.filter(f => f.type === "application/pdf");
-    setFiles(pdfFiles); 
+    setFiles(pdfFiles);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -25,7 +25,7 @@ export default function UploadPage() {
   const handleUpload = async () => {
     if (files.length === 0) return;
     setIsUploading(true);
-    
+
     // Mocking API call time
     setTimeout(() => {
       setIsUploading(false);
@@ -52,30 +52,30 @@ export default function UploadPage() {
           >
             <input {...getInputProps()} />
             <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-               <UploadCloud className="w-8 h-8 text-blue-600" />
+              <UploadCloud className="w-8 h-8 text-blue-600" />
             </div>
             <p className="text-lg font-medium text-slate-900">파일을 드래그하거나 클릭하여 업로드</p>
-            <p className="text-sm text-slate-500 mt-1">PDF (최대 50MB)</p>
+            <p className="text-sm text-slate-500 mt-1">PDF 파일</p>
           </div>
         </CardContent>
       </Card>
 
       {files.length > 0 && (
         <Card className="bg-white">
-            <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-red-100 rounded">
-                        <FileText className="w-6 h-6 text-red-500" />
-                    </div>
-                    <div>
-                        <p className="font-medium text-sm">{files[0].name}</p>
-                        <p className="text-xs text-slate-500">{(files[0].size / 1024 / 1024).toFixed(2)} MB</p>
-                    </div>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setFiles([])} disabled={isUploading}>
-                    <X className="w-4 h-4" />
-                </Button>
-            </CardContent>
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 rounded">
+                <FileText className="w-6 h-6 text-red-500" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">{files[0].name}</p>
+                <p className="text-xs text-slate-500">{(files[0].size / 1024 / 1024).toFixed(2)} MB</p>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setFiles([])} disabled={isUploading}>
+              <X className="w-4 h-4" />
+            </Button>
+          </CardContent>
         </Card>
       )}
 

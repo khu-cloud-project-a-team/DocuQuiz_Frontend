@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PlusCircle, BookOpen, BarChart3, FileText } from "lucide-react";
+import { PlusCircle, BookOpen, BarChart3, FileText, PlayCircle } from "lucide-react";
 
 export default function Dashboard() {
   return (
@@ -25,12 +25,11 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 푼 문제 수</CardTitle>
+            <CardTitle className="text-sm font-medium">생성한 문제집 수</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,247</div>
-            <p className="text-xs text-muted-foreground">+18.1% from last month</p>
+            <div className="text-2xl font-bold">12</div>
           </CardContent>
         </Card>
         <Card>
@@ -40,23 +39,23 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">81%</div>
-            <p className="text-xs text-muted-foreground">+4% from last week</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">업로드한 PDF</CardTitle>
+            <CardTitle className="text-sm font-medium">업로드한 PDF 개수</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">총 업로드 개수</p>
+
           </CardContent>
         </Card>
       </div>
 
-      {/* 최근 퀴즈 목록 */}
+      {/* 중간 영역: 최근 퀴즈 & 업로드한 PDF */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        {/* 최근 퀴즈 목록 */}
         <Card className="col-span-4">
           <CardHeader>
             <CardTitle>최근 학습 기록</CardTitle>
@@ -86,22 +85,75 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* 빠른 시작 / 추천 영역 */}
+        {/* 업로드한 PDF 목록 */}
         <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>오답 노트 바로가기</CardTitle>
-            <CardDescription>
-              많이 틀린 유형을 복습해보세요.
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>업로드한 PDF</CardTitle>
+              <CardDescription>최근 업로드한 파일입니다.</CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/pdfs">전체 보기</Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[
+                { title: "운영체제_8장_가상메모리.pdf", date: "2024-03-15", size: "2.4MB" },
+                { title: "데이터베이스_정규화_강의자료.pdf", date: "2024-03-14", size: "1.8MB" },
+                { title: "알고리즘_정렬_요약.pdf", date: "2024-03-10", size: "1.2MB" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium leading-none truncate max-w-[180px]">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">{item.date}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground mr-2">{item.size}</span>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                      <Link href="/generate?fileId=demo">
+                        <PlayCircle className="h-4 w-4 text-blue-600" />
+                        <span className="sr-only">문제 생성</span>
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 하단 영역: 오답 노트 바로가기 */}
+      <div className="grid gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>오답 노트 바로가기</CardTitle>
+              <CardDescription>
+                많이 틀린 유형을 복습해보세요.
+              </CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/incorrect-notes">전체 보기</Link>
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-4 p-3 bg-red-50 rounded-lg cursor-pointer hover:bg-red-100 transition-colors">
-              <div className="h-2 w-2 rounded-full bg-red-500" />
-              <div className="flex-1">
-                <p className="text-sm font-medium">데이터베이스 - B-Tree</p>
-                <p className="text-xs text-muted-foreground">정답률 40% 미만</p>
-              </div>
-              <Button variant="ghost" size="sm">복습</Button>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[
+                { title: "데이터베이스 - B-Tree", rate: "40%", color: "bg-red-500", bg: "bg-red-50", hover: "hover:bg-red-100" },
+                { title: "운영체제 - 페이징", rate: "45%", color: "bg-orange-500", bg: "bg-orange-50", hover: "hover:bg-orange-100" },
+                { title: "네트워크 - TCP/IP", rate: "52%", color: "bg-yellow-500", bg: "bg-yellow-50", hover: "hover:bg-yellow-100" },
+              ].map((item, i) => (
+                <div key={i} className={`flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-colors ${item.bg} ${item.hover}`}>
+                  <div className={`h-2 w-2 rounded-full ${item.color}`} />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">정답률 {item.rate} 미만</p>
+                  </div>
+                  <Button variant="ghost" size="sm">복습</Button>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
