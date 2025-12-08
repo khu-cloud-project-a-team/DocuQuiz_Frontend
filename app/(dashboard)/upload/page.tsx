@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, FileRejection } from "react-dropzone";
 import { UploadCloud, FileText, X, Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,15 +12,27 @@ export default function UploadPage() {
   const [isUploading, setIsUploading] = useState(false);
 
   // 드롭존 설정
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
     const pdfFiles = acceptedFiles.filter(f => f.type === "application/pdf");
-    setFiles(pdfFiles);
+    if (pdfFiles.length > 0) {
+      setFiles(pdfFiles);
+    }
+
+    if (fileRejections.length > 0) {
+      const rejection = fileRejections[0];
+      if (rejection.errors[0].code === "file-too-large") {
+        alert("파일 크기는 10MB를 초과할 수 없습니다.");
+      } else {
+        alert("파일 업로드 중 오류가 발생했습니다.");
+      }
+    }
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "application/pdf": [".pdf"] },
     maxFiles: 1, // 데모용 1개 제한
+    maxSize: 10 * 1024 * 1024, // 10MB
   });
 
   const handleUpload = async () => {
@@ -75,7 +87,7 @@ export default function UploadPage() {
               <UploadCloud className="w-8 h-8 text-blue-600" />
             </div>
             <p className="text-lg font-medium text-slate-900">파일을 드래그하거나 클릭하여 업로드</p>
-            <p className="text-sm text-slate-500 mt-1">PDF 파일</p>
+            <p className="text-sm text-slate-500 mt-1">PDF 파일 (최대 10MB)</p>
           </div>
         </CardContent>
       </Card>
