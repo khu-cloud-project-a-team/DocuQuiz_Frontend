@@ -12,10 +12,12 @@ import { generateSecretCode, loginWithCode } from "@/lib/auth";
 export default function LoginPage() {
   const router = useRouter();
   const [secretCode, setSecretCode] = useState("");
+  const [nickname, setNickname] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isSignupMode, setIsSignupMode] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +38,38 @@ export default function LoginPage() {
     }
   };
 
-  const handleSignup = () => {
-    const code = generateSecretCode();
-    setGeneratedCode(code);
+  const handleSignupStart = () => {
+    setIsSignupMode(true);
+    setError("");
+  };
+
+  const handleSignupComplete = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nickname.trim()) {
+      setError("닉네임을 입력해주세요.");
+      return;
+    }
+    if (nickname.length > 10) {
+      setError("닉네임은 10글자 이내여야 합니다.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const code = generateSecretCode();
+      const saved = await import("@/lib/auth").then(mod => mod.saveUser(code, nickname));
+
+      if (saved) {
+        setGeneratedCode(code);
+        setIsSignupMode(false); // Reset mode but we show result state driven by 'generatedCode'
+      } else {
+        setError("회원가입 중 오류가 발생했습니다.");
+      }
+    } catch (err) {
+      setError("서버 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const copyToClipboard = () => {
@@ -47,6 +78,14 @@ export default function LoginPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const resetState = () => {
+    setSecretCode("");
+    setNickname("");
+    setGeneratedCode(null);
+    setIsSignupMode(false);
+    setError("");
   };
 
   return (
@@ -65,8 +104,82 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardContent>
-          {!generatedCode ? (
-            <form onSubmit={handleLogin} className="grid gap-4">
+          {generatedCode ? (
+            // ================== 3. Generated Code View ==================
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="text-center space-y-2">
+                <h3 className="font-semibold text-lg text-slate-900">환영합니다, {nickname}님!</h3>
+                <p className="text-sm text-slate-500">
+                  비밀코드가 발급되었습니다.<br />
+                  이 코드는 다시 확인할 수 없으니<br />반드시 안전한 곳에 저장해주세요.
+                </p>
+              </div>
+
+              <div className="bg-slate-100 p-4 rounded-lg border border-slate-200 flex items-center justify-between group relative overflow-hidden">
+                <code className="text-xl font-mono font-bold tracking-wider text-blue-600">
+                  {generatedCode}
+                </code>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={copyToClipboard}
+                  className="hover:bg-white hover:text-blue-600 transition-colors"
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+
+              <Button
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white"
+                onClick={() => {
+                  setSecretCode(generatedCode);
+                  setGeneratedCode(null);
+                  handleLogin({ preventDefault: () => { } } as React.FormEvent);
+                  // Or just: 
+                  // localStorage.setItem('auth_token', generatedCode);
+                  // localStorage.setItem('user_nickname', nickname);
+                  // router.push("/dashboard");
+                }}
+              >
+                바로 시작하기 <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          ) : isSignupMode ? (
+            // ================== 2. Nickname Input View ==================
+            <form onSubmit={handleSignupComplete} className="grid gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="grid gap-2">
+                <Label htmlFor="nickname" className="text-slate-700">닉네임 설정</Label>
+                <div className="relative">
+                  <Input
+                    id="nickname"
+                    placeholder="사용하실 닉네임을 입력하세요"
+                    className="bg-slate-50 border-slate-200 focus:border-blue-500 transition-colors"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    maxLength={10}
+                    autoFocus
+                  />
+                </div>
+                {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+                <p className="text-xs text-slate-400">최대 10글자까지 입력 가능합니다.</p>
+              </div>
+
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/10" disabled={isLoading}>
+                {isLoading ? "발급 중..." : "비밀코드 발급받기"}
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full hover:bg-slate-100 text-slate-500"
+                onClick={resetState}
+              >
+                취소하고 뒤로가기
+              </Button>
+            </form>
+          ) : (
+            // ================== 1. Default Login View ==================
+            <form onSubmit={handleLogin} className="grid gap-4 animate-in fade-in slide-in-from-left-4 duration-300">
               <div className="grid gap-2">
                 <Label htmlFor="code" className="text-slate-700">비밀코드</Label>
                 <div className="relative">
@@ -102,44 +215,11 @@ export default function LoginPage() {
                 type="button"
                 variant="outline"
                 className="w-full border-slate-200 hover:bg-slate-50 text-slate-700"
-                onClick={handleSignup}
+                onClick={handleSignupStart}
               >
                 새 비밀코드 발급받기
               </Button>
             </form>
-          ) : (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="text-center space-y-2">
-                <h3 className="font-semibold text-lg text-slate-900">비밀코드가 발급되었습니다</h3>
-                <p className="text-sm text-slate-500">
-                  이 코드는 다시 확인할 수 없으니<br />반드시 안전한 곳에 저장해주세요.
-                </p>
-              </div>
-
-              <div className="bg-slate-100 p-4 rounded-lg border border-slate-200 flex items-center justify-between group relative overflow-hidden">
-                <code className="text-xl font-mono font-bold tracking-wider text-blue-600">
-                  {generatedCode}
-                </code>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={copyToClipboard}
-                  className="hover:bg-white hover:text-blue-600 transition-colors"
-                >
-                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </Button>
-              </div>
-
-              <Button
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white"
-                onClick={() => {
-                  setSecretCode(generatedCode);
-                  setGeneratedCode(null);
-                }}
-              >
-                로그인하러 가기 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
           )}
         </CardContent>
 
