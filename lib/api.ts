@@ -117,8 +117,11 @@ const fetchWithAuth = async <T>(
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...options.headers,
-    ...(token && { 'Authorization': `Bearer ${token}` }),
   };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
