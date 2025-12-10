@@ -13,15 +13,18 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(() => {
+    // Client-side only check
+    if (typeof window !== "undefined" && isAuthenticated()) {
+      return getUserDisplayName();
+    }
+    return null;
+  });
 
   useEffect(() => {
     // 인증 가드: 로그인하지 않은 사용자는 로그인 페이지로 리디렉션
     if (!isAuthenticated()) {
       router.replace("/");
-    } else {
-      // 사용자 이름 가져오기
-      setDisplayName(getUserDisplayName());
     }
   }, [router]);
 
