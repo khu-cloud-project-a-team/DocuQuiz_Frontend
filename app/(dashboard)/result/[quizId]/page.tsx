@@ -3,7 +3,7 @@
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCcw, Home, Smile, Frown, BookOpen, FileText } from "lucide-react";
+import { RefreshCcw, Home, Smile, Frown, BookOpen, FileText, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { regenerateFromNote } from "@/lib/api";
 import { useState } from "react";
