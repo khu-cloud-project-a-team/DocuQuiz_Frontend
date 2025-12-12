@@ -39,6 +39,20 @@ export default function PdfsPage() {
 
   useEffect(() => {
     fetchData();
+    
+    // 분석 중인 파일이 있으면 주기적으로 확인
+    const interval = setInterval(() => {
+      listFiles().then(filesData => {
+        const hasProcessing = filesData.some(f => !f.status);
+        if (hasProcessing) {
+          setFiles(filesData); // 상태 업데이트
+        }
+      }).catch(() => {
+        // 에러 발생 시 무시 (다음 주기에 다시 시도)
+      });
+    }, 3000); // 3초마다 확인
+    
+    return () => clearInterval(interval);
   }, []);
 
   const handleGenerateClick = (file: FileEntity) => {
