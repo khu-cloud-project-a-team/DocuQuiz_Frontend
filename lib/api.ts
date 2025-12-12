@@ -70,6 +70,10 @@ export interface Quiz {
   questions: Question[];
   isRegeneratedQuiz?: boolean;
   weaknessAnalysis?: string;
+  pdfInfo?: {
+    url: string;
+    fileName: string;
+  };
 }
 
 export interface QuizSubmission {
@@ -81,7 +85,7 @@ export interface QuizSubmission {
 }
 
 export interface QuizResult {
-  id:string;
+  id: string;
   score: number;
   correctQuestions: number;
   totalQuestions: number;
@@ -140,7 +144,7 @@ const fetchWithAuth = async <T>(
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
   }
-  
+
   if (response.status === 204) { // No Content
     return null as T;
   }
@@ -213,7 +217,7 @@ export const submitQuiz = (submission: QuizSubmission): Promise<QuizResult> => {
 export const regenerateFromNote = (noteId: string): Promise<Quiz> => {
   return fetchWithAuth('/quiz/regenerate-from-note', {
     method: 'POST',
-body: JSON.stringify({ noteId }),
+    body: JSON.stringify({ noteId }),
   });
 };
 

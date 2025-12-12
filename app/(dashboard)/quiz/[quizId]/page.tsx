@@ -64,11 +64,11 @@ export default function QuizPage() {
       </div>
     );
   }
-  
+
   const questions = quiz.questions;
   const progress = ((currentIdx + 1) / questions.length) * 100;
   const currQ = questions[currentIdx];
-  
+
   console.log("Current state:", {
     questionsLength: questions.length,
     currentIdx,
@@ -79,7 +79,7 @@ export default function QuizPage() {
   const handleSelect = (answer: string) => {
     setAnswers({ ...answers, [currQ.id]: answer });
   };
-  
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -90,15 +90,15 @@ export default function QuizPage() {
 
       // Ensure all questions are answered
       if (formattedAnswers.length !== questions.length) {
-          const unanswered = questions.length - formattedAnswers.length;
-          if(!confirm(`${unanswered}개의 질문에 답변하지 않았습니다. 정말 제출하시겠습니까?`)){
-            setLoading(false);
-            return;
-          }
+        const unanswered = questions.length - formattedAnswers.length;
+        if (!confirm(`${unanswered}개의 질문에 답변하지 않았습니다. 정말 제출하시겠습니까?`)) {
+          setLoading(false);
+          return;
+        }
       }
 
       const result = await submitQuiz({ quizId, answers: formattedAnswers });
-      
+
       const query = new URLSearchParams({
         score: result.score.toString(),
         correct: result.correctQuestions.toString(),
@@ -107,6 +107,19 @@ export default function QuizPage() {
       if (result.wrongAnswerNoteId) {
         query.set('noteId', result.wrongAnswerNoteId);
       }
+
+      // 결과 페이지에서 사용하기 위해 세션 스토리지에 퀴즈 데이터와 답안 저장
+      // (새로고침 시 유지되지만, 탭 닫으면 사라짐)
+      try {
+        sessionStorage.setItem(`quiz_data_${quizId}`, JSON.stringify(quiz));
+        sessionStorage.setItem(`user_answers_${quizId}`, JSON.stringify(answers)); // 원본 answers 객체 저장
+        sessionStorage.setItem('last_active_quiz_id', quizId); // ResultPage에서 ID를 찾지 못할 경우 대비
+      } catch (e) {
+        console.error("Failed to save to sessionStorage", e);
+      }
+
+      // 쿼리 파라미터에 원본 Quiz ID 추가 (ResultPage에서 데이터 로드용)
+      query.set('quizId', quizId);
 
       router.push(`/result/${result.id}?${query.toString()}`);
 
@@ -135,13 +148,11 @@ export default function QuizPage() {
               <div
                 key={idx}
                 onClick={() => handleSelect(opt)}
-                className={`p-4 border rounded-lg cursor-pointer transition-all flex items-center gap-3 hover:bg-slate-50 ${
-                  selectedAnswer === opt ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500" : "border-slate-200"
-                }`}
+                className={`p-4 border rounded-lg cursor-pointer transition-all flex items-center gap-3 hover:bg-slate-50 ${selectedAnswer === opt ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500" : "border-slate-200"
+                  }`}
               >
-                <div className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs shrink-0 ${
-                  selectedAnswer === opt ? "bg-blue-600 border-blue-600 text-white" : "border-slate-300 text-slate-500"
-                }`}>
+                <div className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs shrink-0 ${selectedAnswer === opt ? "bg-blue-600 border-blue-600 text-white" : "border-slate-300 text-slate-500"
+                  }`}>
                   {String.fromCharCode(65 + idx)}
                 </div>
                 <span className="text-base">{opt}</span>
@@ -183,7 +194,7 @@ export default function QuizPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {quiz.isRegeneratedQuiz && quiz.weaknessAnalysis && (
-         <Card className="bg-orange-50 border-orange-200">
+        <Card className="bg-orange-50 border-orange-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2 text-orange-800">
               <AlertCircle className="h-5 w-5" />
@@ -221,7 +232,7 @@ export default function QuizPage() {
             <ArrowLeft className="mr-2 h-4 w-4" /> 이전
           </Button>
           <Button onClick={handleNext} disabled={loading}>
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> :
               currentIdx === questions.length - 1 ? "제출하기" : "다음 문제"
             }
             {!loading && currentIdx !== questions.length - 1 && <ArrowRight className="ml-2 h-4 w-4" />}
