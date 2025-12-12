@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { RefreshCcw, Home, Smile, Frown, BookOpen, FileText, Loader2, CheckCircle2, XCircle, AlertCircle, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { regenerateFromNote, getQuiz, Quiz, QuizResult } from "@/lib/api";
+import { regenerateFromNote, getQuiz, getQuizPdf, Quiz, QuizResult } from "@/lib/api";
 import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -39,13 +39,20 @@ export default function ResultPage() {
 
             if (originalQuizId) {
                 try {
-                    // Fetch basic quiz data from API (since we removed sessionStorage logic)
-                    // We won't have the user's specific answers or the PDF URL state preserved from the session
+                    // Fetch basic quiz data
                     const fetchedQuiz = await getQuiz(originalQuizId);
                     setQuizData(fetchedQuiz);
 
-                    // We don't have user answers anymore, so we can't show "My Answer" vs "Correct Answer" logic accurately
-                    // But we can still show the questions and explanations.
+                    // Fetch PDF URL
+                    try {
+                        const pdfData = await getQuizPdf(originalQuizId);
+                        if (pdfData && pdfData.url) {
+                            setPdfUrl(pdfData.url);
+                        }
+                    } catch (pdfErr) {
+                        console.error("Failed to fetch PDF URL", pdfErr);
+                    }
+
                 } catch (err) {
                     console.error("Failed to fetch quiz data", err);
                 }
@@ -179,12 +186,22 @@ export default function ResultPage() {
                                                 </p>
                                             </div>
 
-                                            {/* Source Context Info Only (No Button) */}
+                                            {/* Source Context & Link */}
                                             {q.page > 0 && (
-                                                <div className="flex items-center mt-2 pl-1">
+                                                <div className="flex items-center justify-between mt-2 pl-1">
                                                     <span className="text-xs text-slate-400">
                                                         참고: Page {q.page} 에서 출제됨
                                                     </span>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 h-8"
+                                                        onClick={() => jumpToPage(q.page)}
+                                                    >
+                                                        <FileText className="h-3 w-3 mr-1" />
+                                                        근거 문서 보기
+                                                        <ChevronRight className="h-3 w-3 ml-1" />
+                                                    </Button>
                                                 </div>
                                             )}
                                         </div>

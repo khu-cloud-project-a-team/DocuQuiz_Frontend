@@ -244,3 +244,9 @@ export const getQuiz = (id: string): Promise<Quiz> => {
     method: 'GET',
   });
 };
+
+export const getQuizPdf = (id: string): Promise<{ url: string; fileName: string }> => {
+  return fetchWithAuth(`/quiz/${id}/pdf`, {
+    method: 'GET',
+  });
+};
