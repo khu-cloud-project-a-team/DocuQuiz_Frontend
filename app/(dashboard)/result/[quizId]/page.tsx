@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { RefreshCcw, Home, Smile, Frown, BookOpen, FileText, Loader2, CheckCircle2, XCircle, AlertCircle, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { regenerateFromNote, getQuiz, getQuizPdf, Quiz, QuizResult } from "@/lib/api";
+import { regenerateFromNote, getQuiz, Quiz, QuizResult } from "@/lib/api";
 import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -43,24 +43,9 @@ export default function ResultPage() {
                     const fetchedQuiz = await getQuiz(originalQuizId);
                     setQuizData(fetchedQuiz);
 
-                    // Fetch PDF URL and then fetch the PDF content to create a Blob URL
-                    try {
-                        const pdfData = await getQuizPdf(originalQuizId);
-                        if (pdfData && pdfData.url) {
-                            const presignedUrl = pdfData.url;
-
-                            // Fetch directly via JS to bypass browser download behavior based on headers
-                            const response = await fetch(presignedUrl);
-                            if (!response.ok) throw new Error('Failed to fetch PDF data');
-
-                            const blob = await response.blob();
-                            const pdfBlob = new Blob([blob], { type: 'application/pdf' });
-                            const objectUrl = URL.createObjectURL(pdfBlob);
-
-                            setPdfUrl(objectUrl);
-                        }
-                    } catch (pdfErr) {
-                        console.error("Failed to load PDF inline", pdfErr);
+                    // Get PDF URL from quiz data (already CDN URL format)
+                    if (fetchedQuiz.pdfInfo?.url) {
+                        setPdfUrl(fetchedQuiz.pdfInfo.url);
                     }
 
                 } catch (err) {
@@ -74,7 +59,7 @@ export default function ResultPage() {
         loadData();
 
         return () => {
-            // Cleanup blob URL on unmount
+            // Cleanup blob URL on unmount (if any)
             setPdfUrl((currentUrl) => {
                 if (currentUrl && currentUrl.startsWith('blob:')) {
                     URL.revokeObjectURL(currentUrl);
