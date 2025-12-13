@@ -136,9 +136,14 @@ export default function Dashboard() {
       {/* 중간 영역: 최근 퀴즈 & 업로드한 PDF */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>최근 학습 기록</CardTitle>
-            <CardDescription>최근에 생성한 퀴즈 목록입니다.</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>최근 학습 기록</CardTitle>
+              <CardDescription>최근에 생성한 퀴즈 목록입니다.</CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/history">전체 보기</Link>
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -204,15 +209,15 @@ export default function Dashboard() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
-             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {wrongAnswerNotes.length > 0 ? wrongAnswerNotes.map((item) => (
                 <div key={item.id} className="flex items-center gap-4 p-3 rounded-lg bg-amber-50">
                   <div className="flex-1">
                     <p className="text-sm font-medium">{item.quizResult.quiz.title}</p>
                     <p className="text-xs text-muted-foreground">{format(new Date(item.createdAt), 'yyyy-MM-dd')} 생성</p>
                   </div>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     onClick={() => handleRegenerate(item.id)}
                     disabled={regeneratingId === item.id}
