@@ -39,19 +39,24 @@ export default function PdfsPage() {
 
   useEffect(() => {
     fetchData();
-    
+
     // 분석 중인 파일이 있으면 주기적으로 확인
     const interval = setInterval(() => {
       listFiles().then(filesData => {
-        const hasProcessing = filesData.some(f => !f.status);
-        if (hasProcessing) {
-          setFiles(filesData); // 상태 업데이트
-        }
+        setFiles(prev => {
+          // 이전 상태와 비교하여 변경사항이 있을 때만 업데이트
+          // 특히:
+          // 1. 처리 중인 파일이 있었는데 완료된 경우 (prev: processing, curr: done)
+          // 2. 새로운 파일이 추가된 경우
+          // 3. 파일이 삭제된 경우
+          const isChanged = JSON.stringify(prev) !== JSON.stringify(filesData);
+          return isChanged ? filesData : prev;
+        });
       }).catch(() => {
         // 에러 발생 시 무시 (다음 주기에 다시 시도)
       });
     }, 3000); // 3초마다 확인
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -83,9 +88,9 @@ export default function PdfsPage() {
         </div>
       );
     }
-    
+
     if (files.length === 0) {
-        return <p className="text-sm text-muted-foreground text-center py-12">업로드된 파일이 없습니다.</p>;
+      return <p className="text-sm text-muted-foreground text-center py-12">업로드된 파일이 없습니다.</p>;
     }
 
     return (
@@ -112,7 +117,7 @@ export default function PdfsPage() {
                 onClick={() => handleGenerateClick(item)}
               >
                 {item.status ? (
-                   <PlayCircle className="mr-2 h-3 w-3" />
+                  <PlayCircle className="mr-2 h-3 w-3" />
                 ) : (
                   <Loader2 className="mr-2 h-3 w-3 animate-spin" />
                 )}
