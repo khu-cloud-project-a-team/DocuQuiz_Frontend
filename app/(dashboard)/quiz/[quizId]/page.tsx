@@ -192,7 +192,38 @@ export default function QuizPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-orange-700 whitespace-pre-wrap">
-            {quiz.weaknessAnalysis}
+            {(() => {
+              try {
+                // JSON 파싱 시도
+                const parsed = JSON.parse(quiz.weaknessAnalysis);
+                // 값이 객체라면 첫 번째 키의 값을 사용하거나, 그대로 사용
+                const content = typeof parsed === 'object' && parsed !== null
+                  ? Object.values(parsed)[0] as string
+                  : parsed;
+
+                if (typeof content === 'string') {
+                  // 문장 단위로 분리 (. 기준으로)
+                  const sentences = content
+                    .split(/(?<=[.?!])\s+/) // 문장 끝 부호 뒤의 공백으로 분리
+                    .filter(s => s.trim().length > 0);
+
+                  return (
+                    <ol className="list-decimal list-outside pl-5 space-y-2">
+                      {sentences.map((sentence, idx) => (
+                        <li key={idx} className="leading-relaxed pl-1">
+                          {sentence}
+                        </li>
+                      ))}
+                    </ol>
+                  );
+                }
+                // 문자열이 아니면 그대로 출력 (fallback)
+                return <p>{String(content)}</p>;
+              } catch (e) {
+                // 파싱 실패 시 원본 그대로 출력 (줄바꿈만 적용)
+                return <p className="whitespace-pre-wrap">{quiz.weaknessAnalysis}</p>;
+              }
+            })()}
           </CardContent>
         </Card>
       )}
